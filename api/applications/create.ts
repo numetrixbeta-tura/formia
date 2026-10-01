@@ -1,10 +1,14 @@
-import { config } from '../_lib/config';
-import { json, readJson } from '../_lib/http';
-import { createSignedUploadUrl, supabaseRest } from '../_lib/supabase';
+import { config } from '../_lib/config.js';
+import { json, readJson } from '../_lib/http.js';
+import { createSignedUploadUrl, supabaseRest } from '../_lib/supabase.js';
 import { randomUUID } from 'node:crypto';
 
 function cleanName(value: string) {
-  return value.replace(/[^A-ZÁÉÍÓÚÜÑ0-9_-]+/gi, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'SOLICITANTE';
+  return value
+    .replace(/[^A-ZÁÉÍÓÚÜÑ0-9_-]+/gi, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 60) || 'SOLICITANTE';
 }
 
 function requestNumber() {
@@ -15,30 +19,69 @@ function requestNumber() {
 }
 
 export async function POST(req: Request) {
-  if (req.method !== 'POST') return json({ error: 'Método no permitido.' }, 405);
+  if (req.method !== 'POST') {
+    return json({ error: 'Método no permitido.' }, 405);
+  }
+
   try {
     const body = await readJson(req);
     const values = body.values;
     const hasIdentityFront = Boolean(body.hasIdentityFront);
     const hasIdentityBack = Boolean(body.hasIdentityBack);
     const hasIdentityPdf = Boolean(body.hasIdentityPdf);
-    const frontExtension = String(body.frontExtension || 'jpg').toLowerCase() === 'png' ? 'png' : 'jpg';
-    const backExtension = String(body.backExtension || 'jpg').toLowerCase() === 'png' ? 'png' : 'jpg';
-    if (!values || typeof values !== 'object') return json({ error: 'Faltan los datos del formulario.' }, 400);
+
+    const frontExtension =
+      String(body.frontExtension || 'jpg').toLowerCase() === 'png'
+        ? 'png'
+        : 'jpg';
+
+    const backExtension =
+      String(body.backExtension || 'jpg').toLowerCase() === 'png'
+        ? 'png'
+        : 'jpg';
+
+    if (!values || typeof values !== 'object') {
+      return json(
+        { error: 'Faltan los datos del formulario.' },
+        400
+      );
+    }
 
     const id = randomUUID();
     const number = requestNumber();
-    const applicantName = [values.primerNombre, values.segundoNombre, values.primerApellido, values.segundoApellido]
-      .filter(Boolean).join(' ').trim();
+
+    const applicantName = [
+      values.primerNombre,
+      values.segundoNombre,
+      values.primerApellido,
+      values.segundoApellido,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .trim();
+
     const folder = `solicitudes/${number}-${cleanName(applicantName)}`;
+
     const pdfPath = `${folder}/solicitud-completa.pdf`;
-    const identityFrontPath = hasIdentityFront ? `${folder}/cedula-frente.${frontExtension}` : null;
-    const identityBackPath = hasIdentityBack ? `${folder}/cedula-reverso.${backExtension}` : null;
-    const identityPdfPath = hasIdentityPdf ? `${folder}/cedula.pdf` : null;
+
+    const identityFrontPath = hasIdentityFront
+      ? `${folder}/cedula-frente.${frontExtension}`
+      : null;
+
+    const identityBackPath = hasIdentityBack
+      ? `${folder}/cedula-reverso.${backExtension}`
+      : null;
+
+    const identityPdfPath = hasIdentityPdf
+      ? `${folder}/cedula.pdf`
+      : null;
 
     await supabaseRest('applications', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', Prefer: 'return=minimal' },
+      headers: {
+        'content-type': 'application/json',
+        Prefer: 'return=minimal',
+      },
       body: JSON.stringify({
         id,
         request_number: number,
@@ -56,15 +99,43 @@ export async function POST(req: Request) {
       }),
     });
 
-    const uploads: Record<string, { signedUrl: string; path: string }> = {
+    const uploads: Record<
+      string,
+      { signedUrl: string; path: string }
+    > = {
       pdf: await createSignedUploadUrl(pdfPath),
     };
-    if (identityFrontPath) uploads.identityFront = await createSignedUploadUrl(identityFrontPath);
-    if (identityBackPath) uploads.identityBack = await createSignedUploadUrl(identityBackPath);
-    if (identityPdfPath) uploads.identityPdf = await createSignedUploadUrl(identityPdfPath);
 
-    return json({ applicationId: id, requestNumber: number, uploads, bucket: config.bucket() });
+    if (identityFrontPath) {
+      uploads.identityFront =
+        await createSignedUploadUrl(identityFrontPath);
+    }
+
+    if (identityBackPath) {
+      uploads.identityBack =
+        await createSignedUploadUrl(identityBackPath);
+    }
+
+    if (identityPdfPath) {
+      uploads.identityPdf =
+        await createSignedUploadUrl(identityPdfPath);
+    }
+
+    return json({
+      applicationId: id,
+      requestNumber: number,
+      uploads,
+      bucket: config.bucket(),
+    });
   } catch (error) {
-    return json({ error: error instanceof Error ? error.message : 'No fue posible crear la solicitud.' }, 500);
+    return json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : 'No fue posible crear la solicitud.',
+      },
+      500
+    );
   }
 }
