@@ -1,4 +1,4 @@
-import { config, assertServerConfig } from './config';
+import { config, assertServerConfig } from './config.js';
 
 function headers(extra: Record<string, string> = {}) {
   assertServerConfig();

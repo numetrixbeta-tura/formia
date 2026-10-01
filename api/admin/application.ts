@@ -1,6 +1,6 @@
-import { requireAdmin } from '../_lib/auth';
-import { json } from '../_lib/http';
-import { createSignedDownloadUrl, supabaseRest } from '../_lib/supabase';
+import { requireAdmin } from '../_lib/auth.js';
+import { json } from '../_lib/http.js';
+import { createSignedDownloadUrl, supabaseRest } from '../_lib/supabase.js';
 
 export async function GET(req: Request) {
   try {

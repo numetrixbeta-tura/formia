@@ -1,6 +1,6 @@
-import { requireAdmin } from '../_lib/auth';
-import { json, readJson } from '../_lib/http';
-import { supabaseRest } from '../_lib/supabase';
+import { requireAdmin } from '../_lib/auth.js';
+import { json, readJson } from '../_lib/http.js';
+import { supabaseRest } from '../_lib/supabase.js';
 
 async function handler(req: Request) {
   try {

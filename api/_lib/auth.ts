@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import { config } from './config';
+import { config } from './config.js';
 
 function signature(payload: string) {
   return createHmac('sha256', config.adminTokenSecret()).update(payload).digest('base64url');

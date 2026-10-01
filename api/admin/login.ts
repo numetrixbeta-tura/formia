@@ -1,6 +1,6 @@
-import { config } from '../_lib/config';
-import { createAdminToken } from '../_lib/auth';
-import { json, readJson } from '../_lib/http';
+import { config } from '../_lib/config.js';
+import { createAdminToken } from '../_lib/auth.js';
+import { json, readJson } from '../_lib/http.js';
 
 export async function POST(req: Request) {
   if (req.method !== 'POST') return json({ error: 'Método no permitido.' }, 405);
