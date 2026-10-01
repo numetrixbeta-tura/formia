@@ -36,7 +36,7 @@ npm run preview
 /src
   /components   Componentes de UI (campos, pasos, revisión, vista previa)
   /config       pdfFieldMapping.ts (coordenadas de cada campo sobre el PDF)
-                sections.ts (estructura de las 10 secciones del formulario)
+                sections.ts (estructura de las 3 partes simplificadas del formulario)
   /hooks        useDraft.ts (guardado automático en localStorage)
   /services     pdfGenerator.ts (generación del PDF final con pdf-lib)
   /utils        validation.ts (validaciones de campos)
@@ -80,9 +80,9 @@ en Adobe Acrobat u otro lector compatible con AcroForm).
   nunca como texto dibujado libremente sobre la página.
 - El archivo `public/templates/formulario-original.pdf` nunca se modifica
   en disco: cada generación parte de sus bytes originales en memoria.
-- Los espacios de Firma, Firma y CC, y Huella Dactilar NO tienen campo
-  asociado a propósito — quedan siempre vacíos para diligenciarse
-  físicamente después de imprimir.
+- La huella dactilar del PDF original permanece intacta y vacía. La firma
+  manuscrita digital se inserta únicamente en el espacio original "FIRMA Y CC"
+  de la página 2; puede borrarse y volver a capturarse desde la interfaz.
 - El borrador se guarda automáticamente en el navegador (localStorage);
   no se envía a ningún servidor.
 - Verificado con `pdftk dump_data_fields` y con un segundo motor de
@@ -92,3 +92,7 @@ en Adobe Acrobat u otro lector compatible con AcroForm).
   `form.flatten()` de pdf-lib deja en `/Annots` tras aplanar (no afectan
   la validez del PDF, pero algunos visores dibujan un resaltado gris de
   más para ellas); así el aplanado se ve idéntico en cualquier lector.
+
+
+## Documento de identidad
+La cédula se integra al mismo PDF final después de las 2 páginas del formulario. Si se cargan frente y reverso como fotos, se generan 2 páginas A4 adicionales; si se carga un PDF, se anexan sus páginas.

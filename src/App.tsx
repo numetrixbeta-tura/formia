@@ -2,11 +2,12 @@ import { useMemo, useState } from 'react';
 import { SECTIONS, sectionIndexForField } from './config/sections';
 import { useDraft } from './hooks/useDraft';
 import { validate, errorsBySection } from './utils/validation';
-import { generateFilledPdf, flattenPdf } from './services/pdfGenerator';
+import { appendIdentityToPdf, generateFilledPdf, flattenPdf } from './services/pdfGenerator';
 import SectionForm from './components/SectionForm';
 import StepNav from './components/StepNav';
 import ReviewScreen from './components/ReviewScreen';
 import PdfPreviewModal from './components/PdfPreviewModal';
+import type { IdentityAttachments } from './types';
 import './App.css';
 
 const REVIEW_INDEX = SECTIONS.length;
@@ -19,8 +20,9 @@ export default function App() {
   const [genError, setGenError] = useState<string | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [focusFieldId, setFocusFieldId] = useState<string | null>(null);
+  const [attachments, setAttachments] = useState<IdentityAttachments>({ front: null, back: null, pdf: null });
 
-  const errors = useMemo(() => validate(values), [values]);
+  const errors = useMemo(() => validate(values, attachments), [values, attachments]);
 
   const sectionErrorCounts = useMemo(
     () =>
@@ -28,6 +30,7 @@ export default function App() {
         const ids: string[] = [];
         s.rows.forEach((r) => ids.push(...r.fieldIds));
         s.subgroups?.forEach((sg) => sg.rows.forEach((r) => ids.push(...r.fieldIds)));
+        s.radioGroups?.forEach((group) => ids.push(group.id));
         return errorsBySection(errors, ids);
       }),
     [errors]
@@ -63,8 +66,9 @@ export default function App() {
     }
     setGenerating(true);
     try {
-      const bytes = await generateFilledPdf(values);
-      setPdfBytes(bytes);
+      const formBytes = await generateFilledPdf(values);
+      const combinedBytes = await appendIdentityToPdf(formBytes, attachments);
+      setPdfBytes(combinedBytes);
     } catch (err) {
       setGenError(err instanceof Error ? err.message : 'Ocurrió un error generando el PDF.');
     } finally {
@@ -87,10 +91,38 @@ export default function App() {
     URL.revokeObjectURL(url);
   };
 
+  const handleShare = async (flatten: boolean) => {
+    if (!pdfBytes) return;
+    const finalBytes = flatten ? await flattenPdf(pdfBytes) : pdfBytes;
+    const nombre = values.primerNombre ? values.primerNombre.replace(/\s+/g, '_') : 'formulario';
+    const fileName = `solicitud-credito-vehiculo-${nombre}.pdf`;
+    const file = new File([finalBytes.slice()], fileName, { type: 'application/pdf' });
+
+    if (typeof navigator.share === 'function' && typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        title: 'Solicitud de crédito de vehículo',
+        text: 'Solicitud de crédito de vehículo y documentos adjuntos.',
+        files: [file],
+      });
+      return;
+    }
+
+    if (typeof navigator.share === 'function') {
+      await navigator.share({
+        title: 'Solicitud de crédito de vehículo',
+        text: 'Solicitud de crédito de vehículo y documentos adjuntos.',
+      });
+      return;
+    }
+
+    throw new Error('Este navegador no permite compartir archivos directamente. Descarga el PDF y envíalo al banco por WhatsApp, correo u otro medio.');
+  };
+
   const handleNewForm = () => {
     setShowClearConfirm(false);
     clearDraft();
     setPdfBytes(null);
+    setAttachments({ front: null, back: null, pdf: null });
     setStepIndex(0);
   };
 
@@ -137,12 +169,14 @@ export default function App() {
               errors={errors}
               onFieldChange={handleFieldChange}
               onRadioChange={handleRadioChange}
+              attachments={attachments}
+              onAttachmentsChange={setAttachments}
               focusFieldId={focusFieldId}
             />
           )}
 
           {isReview && (
-            <ReviewScreen values={values} errors={errors} onEditSection={goToSection} />
+            <ReviewScreen values={values} errors={errors} attachments={attachments} onEditSection={goToSection} />
           )}
 
           {genError && <div className="alert alert--error">{genError}</div>}
@@ -169,6 +203,7 @@ export default function App() {
         pdfBytes={pdfBytes}
         onClose={() => setPdfBytes(null)}
         onDownload={handleDownload}
+        onShare={handleShare}
       />
 
       {showClearConfirm && (

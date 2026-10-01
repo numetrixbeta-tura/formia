@@ -1,15 +1,40 @@
-import type { FormValues, ValidationError } from '../types';
+import type { FormValues, IdentityAttachments, ValidationError } from '../types';
 
-// Campos obligatorios mínimos razonables (el resto del formulario original
-// permite dejarse en blanco si no aplica al solicitante).
+// Solo se validan los datos que el cliente debe aportar en la versión simplificada.
 export const REQUIRED_FIELDS = [
   'primerNombre',
   'primerApellido',
+  'fechaNacimiento',
+  'tipoDocumento',
   'numeroIdentificacion',
+  'lugarNacimiento_ciudad',
+  'lugarNacimiento_pais',
+  'sexo',
   'direccion',
   'ciudad',
-  'telefono',
+  'departamento',
+  'celular',
+  'tipoVivienda',
   'email',
+  'ocupacion',
+  'profesion',
+  'empresa',
+  'tipoContrato',
+  'cargo',
+  'direccionOficinaPrincipal',
+  'barrio',
+  'ciudadOficina',
+  'totalIngresos',
+  'totalEgresos',
+  'refPersonal1_nombres',
+  'refPersonal1_ciudad',
+  'refPersonal1_celular',
+  'refPersonal1_relacion',
+  'refPersonal2_nombres',
+  'refPersonal2_ciudad',
+  'refPersonal2_celular',
+  'refPersonal2_relacion',
+  'firmaDigital',
 ];
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -33,20 +58,21 @@ function isDayMonthYearField(id: string) {
   return /_(dia|mes|anio)$/i.test(id);
 }
 
-export function formatFieldValue(id: string, raw: string): string {
-  if (isDayMonthYearField(id)) {
-    return raw.replace(/[^0-9]/g, '').slice(0, 4);
-  }
-  if (isPhoneField(id)) {
-    return raw.replace(/[^0-9+()\-\s]/g, '');
-  }
-  if (isMoneyField(id)) {
-    return raw.replace(/[^0-9.,]/g, '');
-  }
-  return raw;
+function formatMoneyLive(raw: string): string {
+  const digits = raw.replace(/\D/g, '');
+  if (!digits) return '';
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
-export function validate(values: FormValues): ValidationError[] {
+export function formatFieldValue(id: string, raw: string): string {
+  if (isEmailField(id)) return raw;
+  if (isDayMonthYearField(id)) return raw.replace(/[^0-9]/g, '').slice(0, 4);
+  if (isMoneyField(id)) return formatMoneyLive(raw);
+  if (isPhoneField(id)) return raw.replace(/[^0-9+()\-\s]/g, '');
+  return raw.toUpperCase();
+}
+
+export function validate(values: FormValues, attachments?: IdentityAttachments): ValidationError[] {
   const errors: ValidationError[] = [];
 
   for (const id of REQUIRED_FIELDS) {
@@ -66,13 +92,21 @@ export function validate(values: FormValues): ValidationError[] {
     }
   }
 
+  if (values.fechaNacimiento && !/^\d{4}-\d{2}-\d{2}$/.test(values.fechaNacimiento)) {
+    errors.push({ fieldId: 'fechaNacimiento', message: 'Fecha de nacimiento no válida.' });
+  }
+
+  if (attachments && !((attachments.front && attachments.back) || attachments.pdf)) {
+    errors.push({
+      fieldId: 'documentosIdentidad',
+      message: 'Adjunta frente y reverso de la cédula en foto o un PDF que contenga ambos lados.',
+    });
+  }
+
   return errors;
 }
 
-export function errorsBySection(
-  errors: ValidationError[],
-  sectionFieldIds: string[]
-): number {
+export function errorsBySection(errors: ValidationError[], sectionFieldIds: string[]): number {
   const set = new Set(sectionFieldIds);
   return errors.filter((e) => set.has(e.fieldId)).length;
 }

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { FormValues } from '../types';
 
-const STORAGE_KEY = 'ssf-universal-draft-v1';
-const STORAGE_META_KEY = 'ssf-universal-draft-meta-v1';
+const STORAGE_KEY = 'formia-simplificado-draft-v1';
+const STORAGE_META_KEY = 'formia-simplificado-draft-meta-v1';
 
 export function useDraft() {
   const [values, setValues] = useState<FormValues>({});

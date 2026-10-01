@@ -4,6 +4,12 @@
 
 export type FormValues = Record<string, string>;
 
+export interface IdentityAttachments {
+  front: File | null;
+  back: File | null;
+  pdf: File | null;
+}
+
 export interface ValidationError {
   fieldId: string;
   message: string;

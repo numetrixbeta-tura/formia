@@ -8,7 +8,7 @@ interface Props {
 
 export default function RadioGroupField({ group, selected, onChange }: Props) {
   return (
-    <div className="radio-group">
+    <div className="radio-group" id={`field-${group.id}`}>
       <span className="radio-group__label">{group.label}</span>
       <div className="radio-group__options">
         {group.options.map((opt) => (

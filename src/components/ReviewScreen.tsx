@@ -1,9 +1,10 @@
 import { SECTIONS, labelFor, sectionIndexForField } from '../config/sections';
-import type { FormValues, ValidationError } from '../types';
+import type { FormValues, IdentityAttachments, ValidationError } from '../types';
 
 interface Props {
   values: FormValues;
   errors: ValidationError[];
+  attachments: IdentityAttachments;
   onEditSection: (index: number, fieldId?: string) => void;
 }
 
@@ -47,7 +48,7 @@ function groupErrorsBySection(errors: ValidationError[]): GroupedError[] {
   return Array.from(groups.values()).sort((a, b) => a.sectionIndex - b.sectionIndex);
 }
 
-export default function ReviewScreen({ values, errors, onEditSection }: Props) {
+export default function ReviewScreen({ values, errors, attachments, onEditSection }: Props) {
   const groupedErrors = groupErrorsBySection(errors);
 
   return (
@@ -114,9 +115,21 @@ export default function ReviewScreen({ values, errors, onEditSection }: Props) {
                 {filled.map((id) => (
                   <div key={id} className="review-card__item">
                     <dt>{labelFor(id)}</dt>
-                    <dd>{values[id]}</dd>
+                    <dd>{id === 'firmaDigital' ? 'Firma digital registrada' : id === 'fechaNacimiento' ? new Date(`${values[id]}T00:00:00`).toLocaleDateString('es-CO') : values[id]}</dd>
                   </div>
                 ))}
+                {idx === 2 && (
+                  <div className="review-card__item review-card__item--full">
+                    <dt>Documento de identidad</dt>
+                    <dd>
+                      {attachments.pdf
+                        ? `PDF: ${attachments.pdf.name}`
+                        : attachments.front && attachments.back
+                          ? `Frente: ${attachments.front.name} · Reverso: ${attachments.back.name}`
+                          : 'Pendiente de adjuntar'}
+                    </dd>
+                  </div>
+                )}
               </dl>
             )}
           </div>

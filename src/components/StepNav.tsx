@@ -8,7 +8,7 @@ interface Props {
 }
 
 export default function StepNav({ sections, currentIndex, onSelect, sectionErrorCounts }: Props) {
-  const progressPct = Math.round((currentIndex / (sections.length - 1)) * 100);
+  const progressPct = Math.round((currentIndex / sections.length) * 100);
 
   return (
     <nav className="step-nav">

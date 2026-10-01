@@ -321,7 +321,7 @@ export default function TemplateEditor() {
         />
       </div>
 
-      <PdfPreviewModal pdfBytes={previewBytes} onClose={() => setPreviewBytes(null)} onDownload={handleDownloadPreview} />
+      <PdfPreviewModal pdfBytes={previewBytes} onClose={() => setPreviewBytes(null)} onDownload={handleDownloadPreview} onShare={async () => {}} />
     </div>
   );
 }
