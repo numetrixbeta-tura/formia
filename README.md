@@ -39,6 +39,7 @@ npm run preview
                 sections.ts (estructura de las 3 partes simplificadas del formulario)
   /hooks        useDraft.ts (guardado automático en localStorage)
   /services     pdfGenerator.ts (generación del PDF final con pdf-lib)
+                applicationApi.ts (registro y carga segura de solicitudes)
   /utils        validation.ts (validaciones de campos)
 /public/templates/formulario-original.pdf   Plantilla PDF original (NO modificar)
 ```
@@ -96,3 +97,24 @@ en Adobe Acrobat u otro lector compatible con AcroForm).
 
 ## Documento de identidad
 La cédula se integra al mismo PDF final después de las 2 páginas del formulario. Si se cargan frente y reverso como fotos, se generan 2 páginas A4 adicionales; si se carga un PDF, se anexan sus páginas.
+
+
+## Flujo actual de solicitudes
+
+El cliente **no descarga ni envía el PDF al banco**. Diligencia las 3 partes, adjunta la cédula, firma digitalmente y pulsa **Enviar solicitud**. FORMIA genera el expediente final, lo guarda de forma privada y muestra un número de solicitud.
+
+El administrador entra en `/admin`, consulta las solicitudes recibidas, descarga el PDF completo y puede usar **Enviar al banco** desde el panel. `/admin/editor` conserva el editor técnico de plantilla existente.
+
+## Base de datos y documentos privados
+
+La versión de producción utiliza Supabase para PostgreSQL + Storage privado. El archivo `supabase/schema.sql` crea la tabla `applications` y el bucket privado `formia-documentos`. Las claves secretas de Supabase solo deben configurarse en las variables de entorno de Vercel; nunca deben exponerse en el navegador.
+
+Variables requeridas en Vercel:
+
+- `SUPABASE_URL`
+- `SUPABASE_SECRET_KEY` (o temporalmente `SUPABASE_SERVICE_ROLE_KEY`)
+- `SUPABASE_STORAGE_BUCKET`
+- `FORMIA_ADMIN_PASSWORD`
+- `FORMIA_ADMIN_TOKEN_SECRET`
+
+Las cargas de archivos se realizan mediante URLs de carga firmadas y las descargas administrativas mediante URLs temporales firmadas. Supabase documenta que las URLs firmadas de carga permiten subir archivos sin exponer una clave de servidor y que los buckets privados deben servirse mediante URLs firmadas.
