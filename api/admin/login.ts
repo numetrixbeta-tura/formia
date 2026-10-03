@@ -1,14 +1,38 @@
 import { config } from '../_lib/config.js';
 import { createAdminToken } from '../_lib/auth.js';
-import { json, readJson } from '../_lib/http.js';
+
+const ADMIN_USERNAME = 'JATORRES';
 
 export async function POST(req: Request) {
-  if (req.method !== 'POST') return json({ error: 'Método no permitido.' }, 405);
   try {
-    const body = await readJson(req);
-    if (String(body.password || '') !== config.adminPassword()) return json({ error: 'Contraseña incorrecta.' }, 401);
-    return json({ token: createAdminToken() });
-  } catch (error) {
-    return json({ error: error instanceof Error ? error.message : 'No fue posible iniciar sesión.' }, 500);
+    const body = await req.json().catch(() => ({}));
+    const username = typeof body?.username === 'string' ? body.username.trim() : '';
+    const password = typeof body?.password === 'string' ? body.password : '';
+
+    if (
+      username.toLowerCase() !== ADMIN_USERNAME.toLowerCase() ||
+      password !== config.adminPassword()
+    ) {
+      return new Response(
+        JSON.stringify({ error: 'Usuario o contraseña incorrectos.' }),
+        {
+          status: 401,
+          headers: { 'content-type': 'application/json' },
+        },
+      );
+    }
+
+    return new Response(JSON.stringify({ token: createAdminToken() }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+  } catch {
+    return new Response(
+      JSON.stringify({ error: 'No fue posible iniciar sesión.' }),
+      {
+        status: 500,
+        headers: { 'content-type': 'application/json' },
+      },
+    );
   }
 }

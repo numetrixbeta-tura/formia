@@ -54,7 +54,9 @@ async function api<T>(
 }
 
 function Login({ onLogin }: { onLogin: (token: string) => void }) {
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -69,13 +71,13 @@ function Login({ onLogin }: { onLogin: (token: string) => void }) {
         headers: {
           'content-type': 'application/json',
         },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Contraseña incorrecta.');
+        throw new Error(data.error || 'Usuario o contraseña incorrectos.');
       }
 
       onLogin(data.token);
@@ -103,14 +105,56 @@ function Login({ onLogin }: { onLogin: (token: string) => void }) {
 
         <form onSubmit={submit}>
           <label>
-            Contraseña de administrador
+            Usuario
 
             <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
               autoFocus
             />
+          </label>
+
+          <label>
+            Contraseña
+
+            <div
+              style={{
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                style={{ paddingRight: '48px', width: '100%' }}
+              />
+
+              <button
+                type="button"
+                aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                title={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                onClick={() => setShowPassword((visible) => !visible)}
+                style={{
+                  position: 'absolute',
+                  right: '8px',
+                  border: 0,
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  fontSize: '20px',
+                  lineHeight: 1,
+                  padding: '6px',
+                }}
+              >
+                {showPassword ? '🙈' : '👁️'}
+              </button>
+            </div>
           </label>
 
           {error && <div className="admin-error">{error}</div>}
