@@ -3,7 +3,13 @@ import { config, assertServerConfig } from './config.js';
 function headers(extra: Record<string, string> = {}) {
   assertServerConfig();
   const key = config.supabaseSecretKey();
-  return { apikey: key, Authorization: `Bearer ${key}`, ...extra };
+  const authHeaders: Record<string, string> = { apikey: key };
+
+  if (!key.startsWith('sb_')) {
+    authHeaders.Authorization = `Bearer ${key}`;
+  }
+
+  return { ...authHeaders, ...extra };
 }
 
 export async function supabaseRest(path: string, init: RequestInit = {}) {
