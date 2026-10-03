@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FormValues } from '../types';
 
 const STORAGE_KEY = 'formia-simplificado-draft-v1';
@@ -8,6 +8,7 @@ export function useDraft() {
   const [values, setValues] = useState<FormValues>({});
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [hasDraft, setHasDraft] = useState<boolean>(false);
+  const autosaveGeneration = useRef(0);
 
   useEffect(() => {
     try {
@@ -47,6 +48,8 @@ export function useDraft() {
   }, []);
 
   const clearDraft = useCallback(() => {
+    // Invalida cualquier autoguardado pendiente del formulario anterior.
+    autosaveGeneration.current += 1;
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(STORAGE_META_KEY);
     setValues({});
@@ -70,7 +73,9 @@ export function useDraft() {
   // Autoguardado con debounce cada vez que cambian los valores.
   useEffect(() => {
     if (Object.keys(values).length === 0) return;
+    const generation = autosaveGeneration.current;
     const t = setTimeout(() => {
+      if (generation !== autosaveGeneration.current) return;
       saveDraft(values);
     }, 800);
     return () => clearTimeout(t);
