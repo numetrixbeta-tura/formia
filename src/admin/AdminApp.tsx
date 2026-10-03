@@ -98,7 +98,7 @@ function Login({ onLogin }: { onLogin: (token: string) => void }) {
 
       <div className="admin-login__brand-lockup">
         <img
-          src="/formia-icon-512.png"
+          src="/icon-512.png"
           alt=""
           className="admin-login__brand-icon"
         />
