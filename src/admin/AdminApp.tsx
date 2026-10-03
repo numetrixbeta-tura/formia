@@ -93,80 +93,114 @@ function Login({ onLogin }: { onLogin: (token: string) => void }) {
   };
 
   return (
-    <div className="admin-login">
-      <div className="admin-login__card">
-        <div className="admin-brand">FORMIA</div>
+    <div className="admin-login admin-login--premium">
+      <div className="admin-login__backdrop" aria-hidden="true" />
 
-        <h1>Panel administrativo</h1>
-
-        <p>
-          Acceso privado para gestionar solicitudes de crédito.
-        </p>
-
-        <form onSubmit={submit}>
-          <label>
-            Usuario
-
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              autoComplete="username"
-              autoCapitalize="none"
-              spellCheck={false}
-              autoFocus
-            />
-          </label>
-
-          <label>
-            Contraseña
-
-            <div
-              style={{
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'center',
-              }}
-            >
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                style={{ paddingRight: '48px', width: '100%' }}
-              />
-
-              <button
-                type="button"
-                aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                title={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                onClick={() => setShowPassword((visible) => !visible)}
-                style={{
-                  position: 'absolute',
-                  right: '8px',
-                  border: 0,
-                  background: 'transparent',
-                  cursor: 'pointer',
-                  fontSize: '20px',
-                  lineHeight: 1,
-                  padding: '6px',
-                }}
-              >
-                {showPassword ? '🙈' : '👁️'}
-              </button>
-            </div>
-          </label>
-
-          {error && <div className="admin-error">{error}</div>}
-
-          <button
-            className="admin-primary"
-            disabled={loading}
-          >
-            {loading ? 'Ingresando…' : 'Ingresar'}
-          </button>
-        </form>
+      <div className="admin-login__brand-lockup">
+        <img
+          src="/formia-icon-512.png"
+          alt=""
+          className="admin-login__brand-icon"
+        />
+        <div>
+          <div className="admin-login__brand-name">FORMIA</div>
+          <div className="admin-login__brand-subtitle">
+            SOLICITUDES DE CRÉDITO DE VEHÍCULO
+          </div>
+        </div>
       </div>
+
+      <div className="admin-login__layout">
+        <div className="admin-login__features" aria-hidden="true">
+          <div className="admin-login__feature">
+            <span className="admin-login__feature-icon">✓</span>
+            <div>
+              <strong>Gestión segura</strong>
+              <span>Consulta y administra solicitudes de crédito.</span>
+            </div>
+          </div>
+          <div className="admin-login__feature">
+            <span className="admin-login__feature-icon">▥</span>
+            <div>
+              <strong>Información en tiempo real</strong>
+              <span>Seguimiento del estado de cada solicitud.</span>
+            </div>
+          </div>
+          <div className="admin-login__feature">
+            <span className="admin-login__feature-icon">◆</span>
+            <div>
+              <strong>Control total</strong>
+              <span>Descarga, revisa y envía al banco.</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="admin-login__card admin-login__card--premium">
+          <div className="admin-login__card-kicker">FORMIA</div>
+          <h1>Panel administrativo</h1>
+          <p>Acceso privado para gestionar solicitudes de crédito.</p>
+
+          <form onSubmit={submit}>
+            <label className="admin-login__field">
+              <span className="admin-login__label">
+                <span className="admin-login__label-icon">♙</span>
+                Usuario
+              </span>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
+                autoFocus
+                placeholder="Ingresa tu usuario"
+              />
+            </label>
+
+            <label className="admin-login__field">
+              <span className="admin-login__label">
+                <span className="admin-login__label-icon">▣</span>
+                Contraseña
+              </span>
+              <span className="admin-login__password-wrap">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  placeholder="Ingresa tu contraseña"
+                />
+                <button
+                  type="button"
+                  className="admin-login__password-toggle"
+                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  title={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  onClick={() => setShowPassword((visible) => !visible)}
+                >
+                  {showPassword ? '◉' : '◌'}
+                </button>
+              </span>
+            </label>
+
+            {error && <div className="admin-error">{error}</div>}
+
+            <button
+              className="admin-primary admin-login__submit"
+              disabled={loading}
+            >
+              <span>{loading ? 'Ingresando…' : 'Ingresar'}</span>
+              <span aria-hidden="true">→</span>
+            </button>
+          </form>
+
+          <div className="admin-login__secure-note">
+            <span>●</span> Acceso protegido para administración de solicitudes
+          </div>
+        </div>
+      </div>
+
+      <div className="admin-login__footer">© 2026 FORMIA. Todos los derechos reservados.</div>
     </div>
   );
 }
